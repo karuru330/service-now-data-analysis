@@ -3,7 +3,7 @@ This Data pipeline is to retrieve the data from service-now based on the require
 
 Architecture Diagram:
 
-![Architecture Diagram](service-now-data-analysis/Architecture Diagram.png)
+![alt text](<Architecture Diagram.png>)
 
 Step 1: Create service-now developer account
 
@@ -23,5 +23,3 @@ Step 1: Create service-now developer account
    - After logging in, click **“Request Instance”**.
    - Choose a version (latest is fine) and wait a few minutes for it to be provisioned.
    - You’ll get a unique URL like `https://dev12345.service-now.com`.
-
-![alt text](<Architecture Diagram.png>)
