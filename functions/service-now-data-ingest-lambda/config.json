@@ -1,0 +1,8 @@
+{
+    "tables": ["incident", "problem", "change_request", "sc_request_item", "kb_knowledge"],
+    "query": "active=true^priority=1^ORpriority=2",
+    "fields": "number,short_description,priority,state",
+    "limit": 1000,
+    "s3_bucket": "dilli-data-engineering-practice-data",
+    "s3_prefix": "service-now-data"
+  }
