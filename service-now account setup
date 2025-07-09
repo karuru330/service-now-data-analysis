@@ -17,3 +17,12 @@ Steps to create service-now developer account
    - After logging in, click **“Request Instance”**.
    - Choose a version (latest is fine) and wait a few minutes for it to be provisioned.
    - You’ll get a unique URL like `https://dev12345.service-now.com`.
+
+
+Table APIs:
+
+https://instance.service-now.com/api/now/table/incident
+https://instance.service-now.com/api/now/table/incident
+https://instance.service-now.com/api/now/table/change_request
+https://instance.service-now.com/api/now/table/sc_request_item
+https://instance.service-now.com/api/now/table/kb_knowledge
