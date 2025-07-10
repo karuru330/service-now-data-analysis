@@ -3,12 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Scheduled Lambda with secret, S3 access, and logging
 
 Parameters:
-  LambdaCodeUri:
-    Type: String
-    Description: Path to Lambda source code
-  LayerCodeUri:
-    Type: String
-    Description: Path to Lambda layer code
   S3BucketName:
     Type: String
     Description: S3 bucket to store Lambda output
