@@ -1,5 +1,5 @@
 {
-    "LambdaCodeUri": "./functions/service_now_data_ingestion/",
-    "LayerCodeUri": "./layers/requests_layer/",
-    "S3BucketName": "dilli-dataengineering-practice-data"
+    "LambdaCodeUri": "./functions/service_now_data_ingestion",
+    "LayerCodeUri": "./layers/requests_layer",
+    "S3BucketName": "dilli-data-engineering-practice-data"
 }
