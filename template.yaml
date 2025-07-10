@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Scheduled Lambda with secret, S3 access, and logging
+
+Parameters:
+  LambdaCodeUri:
+    Type: String
+    Description: Path to Lambda source code
+  LayerCodeUri:
+    Type: String
+    Description: Path to Lambda layer code
+  S3BucketName:
+    Type: String
+    Description: S3 bucket to store Lambda output
+
+Resources:
+  ServiceNowDataAnalysisSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: MyLambdaSecret
+      Description: Secret for Lambda
+      SecretString: !Sub |
+        {
+          "username": "*******",
+          "password": "*******",
+          "instance": "*******"
+        }
+
+  ServiceNowDataAnalysisLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ServiceNowDataAnalysisLambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref ServiceNowDataAnalysisSecret
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${S3BucketName}/*"
+
+  ServiceNowDataAnalysisRequestsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ServiceNowDataAnalysisRequestsLayer
+      Description: Requests package for Lambda
+      ContentUri: !Ref LayerCodeUri
+      CompatibleRuntimes:
+        - python3.11
+
+  ServiceNowDataAnalysisDataIngestionLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ServiceNowDataAnalysisDataIngestionLambda
+      Handler: index.handler
+      Runtime: python3.11
+      CodeUri: !Ref CodeUri
+      Role: !GetAtt ServiceNowDataAnalysisLambdaExecutionRole.Arn
+      Timeout: 900
+      Environment:
+        Variables:
+          SECRET_ARN: !Ref ServiceNowDataAnalysisSecret
+      Layers:
+        - !Ref ServiceNowDataAnalysisRequestsLayer
+      Events:
+        EventBridgeSchedule:
+          Type: EventBridgeRule
+          Properties:
+            ScheduleExpression: rate(30 minutes)
+            Enabled: true
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ServiceNowDataAnalysisDataIngestionLambda}"
+      RetentionInDays: 7
+
+Outputs:
+  ServiceNowLambda:
+    Description: Name of the Lambda function
+    Value: !Ref ServiceNowDataAnalysisDataIngestionLambda

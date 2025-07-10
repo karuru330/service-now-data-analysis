@@ -1,0 +1,52 @@
+name: Deploy Service Now Data Ingestion Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read   # To read repo content
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1
+      STACK_NAME: service-now-data-ingestion-stack
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install AWS SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::492803101350:role/aws-github-ci-cd-role
+          aws-region: us-east-1
+
+      - name: Validate SAM template
+        run: sam validate
+
+      - name: Build SAM application
+        run: sam build --use-container
+
+      - name: Deploy Resources
+        run: |
+          sam deploy \
+            --stack-name $STACK_NAME \
+            --region $AWS_REGION \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides $(cat params.json | jq -r to_entries[] | "\(.key)=\(.value)"') \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
