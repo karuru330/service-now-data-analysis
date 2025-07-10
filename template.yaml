@@ -80,11 +80,25 @@ Resources:
           SECRET_ARN: !Ref ServiceNowDataAnalysisSecret
       Layers:
         - !Ref ServiceNowDataAnalysisRequestsLayer
-      Events:
-        ServiceNowDataAnalysisDataIngestionLambdaEventBridgeSchedule:
-          Type: EventBridgeRule
-          Properties:
-            ScheduleExpression: rate(30 minutes)
+
+  ServiceNowDataAnalysisDataIngestionLambdaEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: ServiceNowDataAnalysisDataIngestionLambdaEventRule
+      ScheduleExpression: rate(30 minutes)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
+          Id: LambdaTarget
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ServiceNowDataAnalysisDataIngestionLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ServiceNowDataAnalysisDataIngestionLambdaEventRule.Arn
+
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
