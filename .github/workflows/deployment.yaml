@@ -26,8 +26,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install AWS SAM CLI
-        run: pip install aws-sam-cli
+      - name: Install AWS SAM CLI & cfn-lint
+        run: |
+          pip install aws-sam-cli cfn-lint
+
+      - name: Run cfn-lint
+        run: cfn-lint template.yaml
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v2
