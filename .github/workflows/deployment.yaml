@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: ap-south-1
-      STACK_NAME: my-scheduled-lambda-stack
+      AWS_REGION: us-east-1
+      STACK_NAME: service-now-data-ingestion-stack
 
     steps:
       - name: Checkout code
@@ -32,8 +32,8 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::<YOUR_ACCOUNT_ID>:role/<YOUR_OIDC_ROLE_NAME>
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::492803101350:role/aws-github-ci-cd-role
+          aws-region: us-east-1
 
       - name: Validate SAM template
         run: sam validate
