@@ -7,7 +7,7 @@ Parameters:
     Type: String
     Description: S3 bucket to store Lambda output
 
-Global:
+Globals:
   Function:
     Handler: lambda_function.lambda_handler
 
@@ -56,6 +56,27 @@ Resources:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${S3BucketName}/*"
 
+  ServiceNowDataAnalysisLambdaInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "service-now-data-analysis-lambda-invoke-role"
+      Description: Role for invoking ServiceNow data analysis Lambda function
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com  # For AWS Scheduler
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AllowInvokeLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
+
   ServiceNowDataAnalysisRequestsLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
@@ -73,7 +94,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: "service-now-data-ingestion-lambda"
-      Handler: index.handler
       Runtime: python3.11
       CodeUri: functions/service-now-data-ingestion-lambda/
       Description: Lambda function for ServiceNow data ingestion
@@ -86,24 +106,16 @@ Resources:
       Layers:
         - !Ref ServiceNowDataAnalysisRequestsLayer
 
-  ServiceNowDataAnalysisDataIngestionLambdaEventRule:
-    Type: AWS::Events::Rule
+  ServiceNowDataAnalysisDataIngestionLambdaSchedule:
+    Type: AWS::Scheduler::Schedule
     Properties:
-      Name: "service-now-data-ingestion-lambda-event-rule"
-      ScheduleExpression: rate(30 minutes)
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
-          Id: LambdaTarget
-
-  LambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref ServiceNowDataAnalysisDataIngestionLambda
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt ServiceNowDataAnalysisDataIngestionLambdaEventRule.Arn
-
+      Name: "service-now-data-ingestion-schedule"
+      ScheduleExpression: "cron(0/30 * * * ? *)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
+        RoleArn: !GetAtt ServiceNowDataAnalysisLambdaInvokeRole.Arn
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup

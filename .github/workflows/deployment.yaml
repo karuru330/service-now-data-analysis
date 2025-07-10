@@ -3,7 +3,7 @@ name: Deploy Service Now Data Ingestion Pipeline
 on:
   push:
     branches:
-      - main
+      - never-deploy-branch
 
 permissions:
   id-token: write  # Required for OIDC
