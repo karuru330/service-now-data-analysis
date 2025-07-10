@@ -81,11 +81,10 @@ Resources:
       Layers:
         - !Ref ServiceNowDataAnalysisRequestsLayer
       Events:
-        EventBridgeSchedule:
+        ServiceNowDataAnalysisDataIngestionLambdaEventBridgeSchedule:
           Type: EventBridgeRule
           Properties:
             ScheduleExpression: rate(30 minutes)
-            Enabled: true
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
