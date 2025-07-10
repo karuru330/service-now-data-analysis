@@ -58,23 +58,29 @@ Resources:
                 Resource: !Sub "arn:aws:s3:::${S3BucketName}/*"
 
   ServiceNowDataAnalysisRequestsLayer:
-    Type: AWS::Serverless::LayerVersion
+    Type: AWS::Lambda::LayerVersion
     Properties:
-      LayerName: ServiceNowDataAnalysisRequestsLayer
+      LayerName: "service-now-data-analysis-requests-layer"
       Description: Requests package for Lambda
-      ContentUri: !Ref LayerCodeUri
+      Content:
+        S3Bucket: !Ref S3BucketName
+        S3Key: !Join ["/", ["layers", "requests_layer.zip"] ]
       CompatibleRuntimes:
         - python3.11
+      CompatibleArchitectures:
+        - x86_64
 
   ServiceNowDataAnalysisDataIngestionLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: ServiceNowDataAnalysisDataIngestionLambda
+      FunctionName: "service-now-data-ingestion-lambda"
       Handler: index.handler
       Runtime: python3.11
-      CodeUri: !Ref CodeUri
+      CodeUri: functions/service-now-data-ingestion-lambda/
+      Description: Lambda function for ServiceNow data ingestion
       Role: !GetAtt ServiceNowDataAnalysisLambdaExecutionRole.Arn
       Timeout: 900
+      MemorySize: 1024
       Environment:
         Variables:
           SECRET_ARN: !Ref ServiceNowDataAnalysisSecret
@@ -84,7 +90,7 @@ Resources:
   ServiceNowDataAnalysisDataIngestionLambdaEventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: ServiceNowDataAnalysisDataIngestionLambdaEventRule
+      Name: "service-now-data-ingestion-lambda-event-rule"
       ScheduleExpression: rate(30 minutes)
       State: ENABLED
       Targets:
