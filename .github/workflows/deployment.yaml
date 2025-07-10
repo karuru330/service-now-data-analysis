@@ -39,6 +39,10 @@ jobs:
           role-to-assume: arn:aws:iam::492803101350:role/aws-github-ci-cd-role
           aws-region: us-east-1
 
+      - name: Upload Layer to S3
+        run: |
+          aws s3 cp ${{ github.workspace }}/layers/requests_layer.zip s3://dilli-data-engineering-practice-data/layers/requests_layer.zip
+
       - name: Validate SAM template
         run: sam validate
 
