@@ -55,7 +55,7 @@ jobs:
             --template-file .aws-sam/build/template.yaml \
             --stack-name $STACK_NAME \
             --region $AWS_REGION \
-            --capabilities CAPABILITY_IAM \
+            --capabilities CAPABILITY_NAMED_IAM \
             --s3-bucket dilli-data-engineering-practice-artifacts \
             --parameter-overrides $(cat params.json | jq -r 'to_entries[] | "\(.key)=\(.value)"') \
             --no-confirm-changeset \
