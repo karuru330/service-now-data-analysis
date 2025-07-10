@@ -94,7 +94,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: "service-now-data-ingestion-lambda"
-      Handler: index.handler
       Runtime: python3.11
       CodeUri: functions/service-now-data-ingestion-lambda/
       Description: Lambda function for ServiceNow data ingestion
