@@ -56,6 +56,27 @@ Resources:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${S3BucketName}/*"
 
+  ServiceNowDataAnalysisLambdaInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: service-now-data-analysis-lambda-invoke-role
+      Description: Role for invoking ServiceNow data analysis Lambda function
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com  # For AWS Scheduler
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AllowInvokeLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
+
   ServiceNowDataAnalysisRequestsLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
@@ -86,15 +107,16 @@ Resources:
       Layers:
         - !Ref ServiceNowDataAnalysisRequestsLayer
 
-  ServiceNowDataAnalysisDataIngestionLambdaEventRule:
-    Type: AWS::Events::Rule
+  ServiceNowDataAnalysisDataIngestionLambdaSchedule:
+    Type: AWS::Scheduler::Schedule
     Properties:
-      Name: "service-now-data-ingestion-lambda-event-rule"
+      Name: service-now-data-ingestion-schedule
       ScheduleExpression: rate(30 minutes)
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
-          Id: LambdaTarget
+      FlexibleTimeWindow:
+        Mode: OFF
+      Target:
+        Arn: !GetAtt ServiceNowDataAnalysisDataIngestionLambda.Arn
+        RoleArn: !GetAtt ServiceNowDataAnalysisLambdaInvokeRole.Arn
 
   LambdaInvokePermission:
     Type: AWS::Lambda::Permission
